@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>实时动态</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+    <link href="../static/css/css2.css" rel="stylesheet">
+    <link href="../static/css/all.min.css" rel="stylesheet">
+    <link href="../static/css/bootstrap-icons.css" rel="stylesheet">
+    <link href="../static/css/owl.carousel.min.css" rel="stylesheet">
+    <link href="../static/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet">
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/css/style.css" rel="stylesheet">
+    <!-- <script src="https://cdn.jsdelivr.net/npm/echarts@5.2.2/dist/echarts.min.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <!-- <script type="text/javascript" src="https://assets.pyecharts.org/assets/echarts.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
+    <style>
+        .chart-container {
+            width: 100%; /* 设置图表容器宽度 */
+            height: 550px; /* 设置图表容器高度 */
+            float: left;
+            margin: 10px; /* 添加一些间距 */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid position-relative bg-white d-flex p-0">
+
+        <div id="spinner"
+            class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <div class="sidebar pe-4 pb-3">
+            <nav class="navbar bg-light navbar-light">
+                <a href="/" class="navbar-brand mx-4 mb-3">
+                    <h3 class="text-primary">直播后台</h3>
+                </a>
+                <!-- 侧边菜单 ------------------------------------------->
+                <div class="navbar-nav w-100">
+                    <a href="/" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>首页</a>
+                    <a href="/sales" class="nav-item nav-link "><i class="fa fa-tachometer-alt me-2"></i>归档分析</a>
+                </div>
+            </nav>
+        </div>
+
+
+        <div class="content">
+<!-- 顶部选项------------------------------- -->
+            <nav class="navbar navbar-expand bg-light navbar-light sticky-top px-4 py-0">
+                <a href="" class="navbar-brand d-flex d-lg-none me-4">
+                    <h2 class="text-primary mb-0"><i class="fa fa-hashtag"></i></h2>
+                </a>
+                <a href="#" class="sidebar-toggler flex-shrink-0">
+                    <i class="fa fa-bars"></i>
+                </a>
+                <div class="navbar-nav align-items-center ms-auto">
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                            <img class="rounded-circle me-lg-2" src="../static/picture/user.png" alt=""
+                                style="width: 40px; height: 40px;">
+                            <span id="username" class="d-none d-lg-inline-flex">John Doe</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
+                            <a href="/logout" class="dropdown-item">Log Out</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+<!-- 顶部选项------------------------------- -->
+<!-- 页面内容-------------------------------- -->
+            <div class="container-fluid pt-4 px-4">
+                <div class="row g-4">
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
+                            <i class="fa fa-chart-line fa-3x text-primary"></i>
+                            <div class="ms-3">
+                                <p class="mb-2">购买次数</p>
+                                <h6 class="mb-0">
+                                    <p><span id="purchaseFrequency"></span></p>
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
+                            <i class="fa fa-chart-bar fa-3x text-primary"></i>
+                            <div class="ms-3">
+                                <p class="mb-2">平均讲解时长</p>
+                                <h6 class="mb-0">
+                                    <p><span id="avgDuration"></span>分钟</p>
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
+                            <i class="fa fa-chart-area fa-3x text-primary"></i>
+                            <div class="ms-3">
+                                <p class="mb-2">加入购物车人数</p>
+                                <h6 class="mb-0">
+                                    <p><span id="cartCount"></span></p>
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
+                            <i class="fa fa-chart-pie fa-3x text-primary"></i>
+                            <div class="ms-3">
+                                <p class="mb-2">在线人数</p>
+                                <h6 class="mb-0">
+                                    <p><span id="onlineCount"></span></p>
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid pt-4 px-4">
+                <div class="row g-4">
+                    <div class="col-sm-12 col-xl-6">
+                        <!-- <div class="bg-light text-center rounded p-4"> -->
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h6 class="mb-0">商品购买数量时间分布图</h6>
+                                <a href="">Show All</a>
+                            </div>
+                            <div id="linebarChart3" class="chart-container"></div> <!-- 商品购买数量时间分布图 -->
+                        <!-- </div> -->
+                    </div>
+                    <div class="col-sm-12 col-xl-6">
+                        <!-- <div class="bg-light text-center rounded p-4"> -->
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h6 class="mb-0">弹幕词云</h6>
+                                <a href="">Show All</a>
+                            </div>
+                            <!-- <div id="linebarChart4" class="chart-container"></div> -->
+                            <div id="wordcloud" class="chart-container"></div>
+                        <!-- </div> -->
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid pt-4 px-4">
+                <div class="row g-4">
+                    <div class="col-sm-12 col-xl-6">
+                        <!-- <div class="bg-light text-center rounded p-4"> -->
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h6 class="mb-0">当前人数和观看热度</h6>
+                                <a href="">Show All</a>
+                            </div>
+                            <div id="linebarChart1" class="chart-container"></div> <!-- 当前人数和观看热度 -->
+                        <!-- </div> -->
+                    </div>
+                    <div class="col-sm-12 col-xl-6">
+                        <!-- <div class="bg-light text-center rounded p-4"> -->
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h6 class="mb-0">弹幕发送数量分布图</h6>
+                                <a href="">Show All</a>
+                            </div>
+                            <!-- <canvas id="salse-revenue"></canvas> -->
+                            <div id="linebarChart2" class="chart-container"></div> <!-- 弹幕发送数量分布图 -->
+                        <!-- </div> -->
+                    </div>
+                </div>
+            </div>
+            
+
+            
+<!-- 页面内容-------------------------------- -->
+<!-- 页面底部-------------------------------- -->
+            <!-- <div class="container-fluid pt-4 px-4">
+                <div class="bg-light rounded-top p-4">
+                    <div class="col-12 col-sm-6 text-center text-sm-start">
+                        Copyright &copy; 2022.Company name All rights reserved.<a target="_blank"
+                            href="https://sc.chinaz.com/moban/">&#x7F51;&#x9875;&#x6A21;&#x677F;</a>
+                    </div>
+                    <div class="col-12 col-sm-6 text-center text-sm-end">
+
+
+                    </div>
+                </div>
+            </div> -->
+<!-- 页面底部-------------------------------- -->
+        </div>
+
+    </div>
+
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    </div>
+    <script src="../static/js/jquery-3.4.1.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/bootstrap.bundle.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/chart.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/easing.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/waypoints.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/owl.carousel.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/moment.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/moment-timezone.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/tempusdominus-bootstrap-4.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/main.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/rocket-loader.min.js" data-cf-settings="9a397efbde18659b7296965d-|49" defer=""></script>
+    <script>
+        // 初始化 ECharts 实例
+        var myChart1 = echarts.init(document.getElementById('linebarChart1')); // 第一个图表
+        var myChart2 = echarts.init(document.getElementById('linebarChart2')); // 第二个图表
+        var myChart3 = echarts.init(document.getElementById('linebarChart3')); // 第二个图表
+
+        // 初始数据
+        var chartData1 = {
+            时间段: [],
+            直播人数: [],
+            观看热度: []
+        };
+        var chartData2 = {
+            时间段: [],
+            弹幕发送数量: [],
+        };
+        var chartData3 = {
+            时间段: [],
+            购买数量: [],
+        };
+        // 指定图表的初始配置项
+        var option1 = {
+            title: {
+                // text: '直播人数和观看热度'
+            },
+            tooltip: {},
+            legend: {
+                data:['直播人数', '观看热度']
+            },
+            xAxis: {
+                data: []  // 初始时不设置数据
+            },
+            yAxis: {},
+            series: [{
+                name: '直播人数',
+                type: 'bar',
+                data: []
+            }, {
+                name: '观看热度',
+                type: 'line',
+                data: []
+            }]
+        }
+        var option2 = {
+            title: {
+                // text: '弹幕发送数量分布图'
+            },
+            tooltip: {},
+            legend: {
+                data:['弹幕发送数量']
+            },
+            xAxis: {
+                data: []  // 初始时不设置数据
+            },
+            yAxis: {},
+            series: [{
+                name: '弹幕数量',
+                type: 'bar',
+                data: []
+            }, {
+                name: '弹幕数量',
+                type: 'line',
+                data: []
+            }]
+        };
+        var option3 = {
+            // Make gradient line here
+            visualMap: [
+                {
+                show: false,
+                type: 'continuous',
+                seriesIndex: 0,
+                min: 0,
+                max: 400
+                },  
+            ],
+            title: [
+            ],
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: [
+                {
+                data:[]
+                },
+                
+            ],
+            yAxis: [
+                {},
+                
+            ],
+            series: [
+                {
+                type: 'line',
+                showSymbol: false,
+                areaStyle: {}, // 添加 areaStyle 属性
+                smooth: true,
+                data: []
+                },
+            ]
+            };
+        // 使用刚指定的配置项和数据显示图表
+        myChart1.setOption(option1);
+        myChart2.setOption(option2);
+        myChart3.setOption(option3)
+        // 发起Fetch请求获取初始数据
+        fetchInitData1('liangpin','live_viewers_and_popularity','20220601');
+        function fetchInitData1(brandName,chartType,data_time) {
+            fetch('/get_data/'+ brandName +'/'+ data_time +'?'+'chart_type='+ chartType )
+                .then(response => response.json())
+                .then(data => {
+                    // 数据处理
+                    var init_data = {};
+                    init_data[chartType] = data;
+                    updateCharts1(init_data);
+                })
+                .catch(error => {
+                    console.error('Error fetching initial data:', error);
+                });
+        }
+        fetchInitData2('liangpin','barrage_send_time_distribution','20220601');
+        function fetchInitData2(brandName,chartType,data_time) {
+            fetch('/get_data/'+ brandName +'/'+ data_time +'?'+'chart_type='+ chartType )
+                .then(response => response.json())
+                .then(data => {
+                    // 数据处理
+                    var init_data = {};
+                    init_data[chartType] = data;
+                    updateCharts2(init_data);
+                })
+                .catch(error => {
+                    console.error('Error fetching initial data:', error);
+                });
+        }
+        fetchInitData3('liangpin','item_purchase_frequency_distribution','20220601');
+        function fetchInitData3(brandName,chartType,data_time) {
+            fetch('/get_data/'+ brandName +'/'+ data_time +'?'+'chart_type='+ chartType )
+                .then(response => response.json())
+                .then(data => {
+                    // 数据处理
+                    var init_data = {};
+                    init_data[chartType] = data;
+                    updateCharts3(init_data);
+                })
+                .catch(error => {
+                    console.error('Error fetching initial data:', error);
+                });
+        }
+
+        // 创建 WebSocket 连接
+        const socket = io('http://localhost:5005');
+        // 监听 WebSocket 连接状态
+        socket.on('connect', function() {
+            console.log('WebSocket connected');
+        });
+        // 监听 WebSocket 连接断开事件
+        socket.on('disconnect', function() {
+            console.log('WebSocket disconnected');
+            // 在连接断开时进行重连或其他处理
+            // 例如：重新连接或显示错误信息
+        });
+        // 监听 WebSocket 接收到的消息
+        socket.on('update_data', function(message) {
+            try {
+                var parsedData = JSON.parse(message);
+                updateCharts(parsedData);
+            } catch (error) {
+                console.error('Error parsing WebSocket message:', error);
+                // 在解析消息失败时进行错误处理
+                // 例如：显示错误信息或忽略该消息
+            }
+        });
+
+        // 更新所有图表
+        function updateCharts(data) {
+            updateCharts1(data);
+            updateCharts2(data);
+            updateCharts3(data);
+        }
+        // 更新图表1
+        function updateCharts1(data, method_name='live_viewers_and_popularity') {
+            try {
+                // 解析数据
+                data = data[method_name];
+                // 检查数据有效性
+                if (!data || !data["时间段"] || !data["直播人数"] || !data["观看热度"]) {
+                    console.error('Invalid data received for chart 1:', data);
+                    return; // 如果数据无效，则不更新图表
+                }
+                // 添加新数据到已有数据中
+                chartData1.时间段.push(...data["时间段"]);
+                chartData1.直播人数.push(...data["直播人数"]);
+                chartData1.观看热度.push(...data["观看热度"]);
+                // 更新 x 轴和数据
+                myChart1.setOption({
+                    xAxis: {
+                        data: chartData1["时间段"]
+                    },
+                    series: [{
+                        name: '直播人数',
+                        type: 'bar',
+                        data: chartData1['直播人数']
+                    }, {
+                        name: '观看热度',
+                        type: 'line',
+                        data: chartData1['观看热度']
+                    }]
+                });
+            } catch (error) {
+                console.error('Error updating chart 1:', error);
+                // 在更新图表时出现错误时进行错误处理
+                // 例如：显示错误信息或忽略该图表的更新
+            }
+        }
+
+        // 更新图表2
+        function updateCharts2(data, method_name='barrage_send_time_distribution') {
+            try {
+                // 解析数据
+                data = data[method_name];
+                // 检查数据有效性
+                if (!data || !data["时间段"] || !data["弹幕发送数量"]) {
+                    console.error('Invalid data received for chart 2:', data);
+                    return; // 如果数据无效，则不更新图表
+                }
+                // 添加新数据到已有数据中
+                chartData2.时间段.push(...data["时间段"]);
+                chartData2.弹幕发送数量.push(...data["弹幕发送数量"]);
+                // 更新 x 轴和数据
+                myChart2.setOption({
+                    xAxis: {
+                        data: chartData2["时间段"]
+                    },
+                    series: [{
+                        name: '弹幕数量',
+                        type: 'bar',
+                        data: chartData2['弹幕发送数量']
+                    }, {
+                        name: '弹幕数量',
+                        type: 'line',
+                        data: chartData2['弹幕发送数量']
+                    }]
+                });
+            } catch (error) {
+                console.error('Error updating chart 2:', error);
+                // 在更新图表时出现错误时进行错误处理
+                // 例如：显示错误信息或忽略该图表的更新
+            }
+        }
+
+        // 更新图表3
+        function updateCharts3(data, method_name='item_purchase_frequency_distribution') {
+            try {
+                // 解析数据
+                data = data[method_name];
+                // 检查数据有效性
+                if (!data || !data["时间段"] || !data["购买数量"]) {
+                    console.error('Invalid data received for chart 3:', data);
+                    return; // 如果数据无效，则不更新图表
+                }
+                // 添加新数据到已有数据中
+                chartData3.时间段.push(...data["时间段"]);
+                chartData3.购买数量.push(...data["购买数量"]);
+                // 更新 x 轴和数据
+                myChart3.setOption({
+                    xAxis: {
+                        data: chartData3["时间段"]
+                    },
+                    series: [{
+                        name: '购买数量',
+                        type: 'line',
+                        data: chartData3['购买数量']
+                    }]
+                });
+            } catch (error) {
+                console.error('Error updating chart 3:', error);
+                // 在更新图表时出现错误时进行错误处理
+                // 例如：显示错误信息或忽略该图表的更新
+            }
+        }
+
+    </script>
+    <script>
+        fetchBasicData('liangpin', 'linebarChart','get_basic_data','20220617');
+        function fetchBasicData(brandName, containerId, chartType, data_time) {
+            // 使用 Fetch API 获取 Flask 接口返回的数据
+            fetch('/get_data/'+ brandName +'/'+ data_time +'?'+'chart_type='+ chartType )
+                .then(response => response.json())
+                .then(data => {
+                    // 设置数据显示
+                    document.getElementById('cartCount').innerText = data['加入购物车人数'];
+                    document.getElementById('onlineCount').innerText = data['在线人数'];
+                    document.getElementById('avgDuration').innerText = data['平均讲解时长'];
+                    document.getElementById('purchaseFrequency').innerText = data['购买次数'];
+                    
+                    // 使用刚指定的配置项和数据显示图表
+                    myChart.setOption(option);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+    <script>
+        // 获取数据并渲染词云图
+        fetchDataAndRenderWordCloud('liangpin', 'wordcloud', 'generate_barrage_wordcloud_data', '20220601');
+        function fetchDataAndRenderWordCloud(brandName, containerId, chartType, data_time) {
+            // 使用 Fetch API 获取 Flask 接口返回的数据
+            fetch('/get_data/' + brandName + '/' + data_time + '?' + 'chart_type=' + chartType)
+                .then(response => response.json()) // 将响应解析为 JSON 格式
+                .then(data => {
+                    // 在成功获取数据后，渲染词云图
+                    renderWordCloud(containerId, data);
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+    
+        function renderWordCloud(containerId, data) {
+            var myChart = echarts.init(document.getElementById(containerId)); // 初始化 ECharts 实例
+            var option = {
+                tooltip: {},
+                series: [{
+                    type: 'wordCloud',
+                    gridSize: 20,
+                    sizeRange: [20, 100],
+                    rotationRange: [-45, 45],
+                    shape: 'circle',
+                    textStyle: {
+                        normal: {
+                            fontFamily: 'sans-serif',
+                            fontWeight: 'bold',
+                            color: function () {
+                                // 随机颜色
+                                return 'rgb(' + [
+                                    Math.round(Math.random() * 255),
+                                    Math.round(Math.random() * 255),
+                                    Math.round(Math.random() * 255)
+                                ].join(',') + ')';
+                            }
+                        }
+                    },
+                    data: data // 使用接口返回的数据
+                }]
+            };
+            myChart.setOption(option); // 设置选项
+        }
+    </script>
+    <script>
+        var usernameContainer = document.getElementById('username'); // 获取用于显示用户名的容器元素
+        function getUserInfoAndFetchDateList() {
+            // 使用 Fetch API 发送请求获取用户信息
+            fetch('/user_info')
+                .then(response => {
+                    if (!response.ok) {
+                        window.location.href = '/signin';
+                        throw new Error('Failed to fetch user information');
+                    }
+                    return response.json();
+                })
+                .then(userInfo => {
+                    // 从用户信息中获取品牌名称
+                    const userName = userInfo.username;
+                    // 显示用户名
+                    usernameContainer.innerText = userName;
+                })
+                .catch(error => console.error('Error fetching user information:', error));
+        }
+        document.addEventListener("DOMContentLoaded", function() {
+            getUserInfoAndFetchDateList()
+        });
+    </script>
+
+</body>
+
+</html>

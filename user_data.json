@@ -1,0 +1,44 @@
+[
+    {
+        "id": 1,
+        "username": "luca",
+        "password": "123456",
+        "role": "user",
+        "brandname": "liangpin"
+    },
+    {
+        "id": 2,
+        "username": "luca2",
+        "password": "123456",
+        "role": "user2",
+        "brandname": "jingzao"
+    },
+    {
+        "id": 3,
+        "username": "luca3",
+        "password": "123456",
+        "role": "role3",
+        "brandname": "brand3"
+    },
+    {
+        "id": 4,
+        "username": "luca4",
+        "password": "123456",
+        "role": "role4",
+        "brandname": "brand4"
+    },
+    {
+        "id": 5,
+        "username": "pt",
+        "password": "123456",
+        "role": "platform",
+        "brandname": "Platform Brand"
+    },
+    {
+        "id": 6,
+        "username": "test1",
+        "password": "123456",
+        "role": "Merchant",
+        "brandname": "jingzao"
+    }
+]

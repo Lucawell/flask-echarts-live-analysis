@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>情感分析</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+    <link href="../static/css/css2.css" rel="stylesheet">
+    <link href="../static/css/all.min.css" rel="stylesheet">
+    <link href="../static/css/bootstrap-icons.css" rel="stylesheet">
+    <link href="../static/css/owl.carousel.min.css" rel="stylesheet">
+    <link href="../static/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet">
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/css/style.css" rel="stylesheet">
+    <!-- <script src="https://cdn.jsdelivr.net/npm/echarts@5.2.2/dist/echarts.min.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <!-- <script type="text/javascript" src="https://assets.pyecharts.org/assets/echarts.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- 引入Flatpickr库 -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- 引入中文语言包 -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
+    <style>
+        .chart-container {
+            width: 100%; /* 设置图表容器宽度 */
+            height: 550px; /* 设置图表容器高度 */
+            float: left;
+            margin: 10px; /* 添加一些间距 */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid position-relative bg-white d-flex p-0">
+
+        <div id="spinner"
+            class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <div class="sidebar pe-4 pb-3">
+            <nav class="navbar bg-light navbar-light">
+                <a href="/" class="navbar-brand mx-4 mb-3">
+                    <h3 class="text-primary">直播后台</h3>
+                </a>
+                <!-- 侧边菜单 ------------------------------------------->
+                <div class="navbar-nav w-100">
+                    <a href="/" class="nav-item nav-link "><i class="fa fa-tachometer-alt me-2"></i>首页</a>
+                    <a href="/sales" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>归档分析</a>
+                </div>
+            </nav>
+        </div>
+
+
+        <div class="content">
+<!-- 顶部选项------------------------------- -->
+            <nav class="navbar navbar-expand bg-light navbar-light sticky-top px-4 py-0">
+                <a href="" class="navbar-brand d-flex d-lg-none me-4">
+                    <h2 class="text-primary mb-0"><i class="fa fa-hashtag"></i></h2>
+                </a>
+                <a href="#" class="sidebar-toggler flex-shrink-0">
+                    <i class="fa fa-bars"></i>
+                </a>
+                <div class="navbar-nav align-items-center ms-auto">
+                    <!-- 直播历史 -->
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" id="item-dropdown">
+                            <i class="fa fa-envelope me-lg-2"></i>
+                            <span class="d-none d-lg-inline-flex">直播历史</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
+                            <label>选择日期</label>
+                            <input type="text" id="date-picker" placeholder="Select Date" readonly>
+                        </div>
+                    </div>
+                    <!-- 直播历史 -->
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                            <img class="rounded-circle me-lg-2" src="../static/picture/user.png" alt=""
+                                style="width: 40px; height: 40px;">
+                            <span id="username" class="d-none d-lg-inline-flex">John Doe</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
+                            <a href="/logout" class="dropdown-item">Log Out</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+<!-- 顶部选项------------------------------- -->
+<!-- 页面内容-------------------------------- -->
+            <div class="container-fluid pt-4 px-4">
+                <div class="row g-4">
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
+                            <i class="fa fa-chart-line fa-3x text-primary"></i>
+                            <div class="ms-3" id="dateContainer">
+                                <p class="mb-2">2022/06/01</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <a href="/emotional">
+                        <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
+                            <i class="fa fa-chart-bar fa-3x text-primary"></i>
+                            <div class="ms-3">
+                                <p class="mb-2">情感分析</p>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <a href="/sales">
+                        <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
+                            <i class="fa fa-chart-area fa-3x text-primary"></i>
+                            <div class="ms-3">
+                                <p class="mb-2">销售分析</p>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <a href="/heat">
+                        <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
+                            <i class="fa fa-chart-pie fa-3x text-primary"></i>
+                            <div class="ms-3">
+                                <p class="mb-2">热度分析</p>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid pt-4 px-4">
+                <div class="row g-4">
+                    <div class="col-sm-12 col-xl-6">
+                        <!-- <div class="bg-light text-center rounded p-4"> -->
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h6 class="mb-0">弹幕词云</h6>
+                                <a href="">Show All</a>
+                            </div>
+                            <!-- <div id="linebarChart4" class="chart-container"></div> -->
+                            <div id="wordcloud" class="chart-container"></div>
+                        <!-- </div> -->
+                    </div>
+                
+                    <div class="col-sm-12 col-xl-6">
+                        <!-- <div class="bg-light text-center rounded p-4"> -->
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h6 class="mb-0">主播行为对弹幕情感影响</h6>
+                                <a href="">Show All</a>
+                            </div>
+                            <div id="threebarChart" class="chart-container"></div>
+                        <!-- </div> -->
+                    </div>
+                </div>
+            </div>
+            
+            
+<!-- 页面内容-------------------------------- -->
+        </div>
+    </div>
+
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    </div>
+    <script src="../static/js/jquery-3.4.1.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/bootstrap.bundle.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/chart.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/easing.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/waypoints.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/owl.carousel.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/moment.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/moment-timezone.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/tempusdominus-bootstrap-4.min.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/main.js" type="9a397efbde18659b7296965d-text/javascript"></script>
+    <script src="../static/js/rocket-loader.min.js" data-cf-settings="9a397efbde18659b7296965d-|49" defer=""></script>
+<!-- 静态 -->
+    <script>
+        // fetchDataAndRenderBarChart('liangpin', 'threebarChart','positive_negative_neutral_barrage_by_time','20220601');
+        // fetchDataAndRenderWordCloud('liangpin', 'wordcloud', 'generate_barrage_wordcloud_data', '20220601');
+        function fetchDataAndRenderBarChart(brandName, containerId,chartType,data_time) {
+            // 使用 Fetch API 获取 Flask 接口返回的数据
+            fetch('/get_data/'+ brandName +'/'+ data_time +'?'+'chart_type='+ chartType )
+                .then(response => response.json())
+                .then(data => {
+                    // 初始化 ECharts 实例
+                    var myChart = echarts.init(document.getElementById(containerId));
+
+                    // 使用接口数据更新图表
+                    myChart.setOption({
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'shadow'
+                            }
+                        },
+                        legend: {
+                            data: ['Positive', 'Negative', 'Neutral']
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        yAxis: [{
+                            type: 'value'
+                        }],
+                        xAxis: [{
+                            type: 'category',
+                            axisTick: {
+                                show: false
+                            },
+                            data: data["时间段"] // 使用接口数据中的时间段
+                        }],
+                        series: [{
+                                name: 'Positive',
+                                type: 'bar',
+                                label: {
+                                    show: true,
+                                    position: 'inside'
+                                },
+                                emphasis: {
+                                    focus: 'series'
+                                },
+                                data: data["Positive"] // 使用接口数据中的 Positive 数据
+                            },
+                            {
+                                name: 'Neutral',
+                                type: 'bar',
+                                stack: 'Total',
+                                label: {
+                                    show: true
+                                },
+                                emphasis: {
+                                    focus: 'series'
+                                },
+                                data: data["Neutral"] // 使用接口数据中的 Neutral 数据
+                            },
+                            {
+                                name: 'Negative',
+                                type: 'bar',
+                                stack: 'Total',
+                                label: {
+                                    show: true,
+                                    position: 'left'
+                                },
+                                emphasis: {
+                                    focus: 'series'
+                                },
+                                // data: data["Negative"] // 使用接口数据中的 Negative 数据
+                                data:data["Negative"].map(value => -value)
+                            }
+                        ]
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+        function fetchDataAndRenderWordCloud(brandName, containerId, chartType, data_time) {
+            // 使用 Fetch API 获取 Flask 接口返回的数据
+            fetch('/get_data/' + brandName + '/' + data_time + '?' + 'chart_type=' + chartType)
+                .then(response => response.json()) // 将响应解析为 JSON 格式
+                .then(data => {
+                    // 在成功获取数据后，渲染词云图
+                    renderWordCloud(containerId, data);
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+        function renderWordCloud(containerId, data) {
+            var myChart = echarts.init(document.getElementById(containerId)); // 初始化 ECharts 实例
+            var option = {
+                tooltip: {},
+                series: [{
+                    type: 'wordCloud',
+                    gridSize: 20,
+                    sizeRange: [20, 100],
+                    rotationRange: [-45, 45],
+                    shape: 'circle',
+                    textStyle: {
+                        normal: {
+                            fontFamily: 'sans-serif',
+                            fontWeight: 'bold',
+                            color: function () {
+                                // 随机颜色
+                                return 'rgb(' + [
+                                    Math.round(Math.random() * 255),
+                                    Math.round(Math.random() * 255),
+                                    Math.round(Math.random() * 255)
+                                ].join(',') + ')';
+                            }
+                        }
+                    },
+                    data: data // 使用接口返回的数据
+                }]
+            };
+            myChart.setOption(option); // 设置选项
+        }
+    </script>
+    <!-- 加载历史数据 -->
+    <script>
+        var dateContainer = document.getElementById('dateContainer');
+        var usernameContainer = document.getElementById('username'); // 获取用于显示用户名的容器元素
+
+        // 获取用户信息并调用 fetchDateList 函数
+        function getUserInfoAndFetchDateList() {
+            // 使用 Fetch API 发送请求获取用户信息
+            fetch('/user_info')
+                .then(response => {
+                    if (!response.ok) {
+                        // 如果未登录，重定向到登录页面
+                        window.location.href = '/signin';
+                        throw new Error('Failed to fetch user information');
+                    }
+                    return response.json();
+                })
+                .then(userInfo => {
+                    // 从用户信息中获取品牌名称
+                    const brandName = userInfo.brandname;
+                    const userName = userInfo.username;
+                    // 显示用户名
+                    usernameContainer.innerText = userName;
+                    // 调用 fetchDateList 函数并传递品牌名称
+                    fetchDateList(brandName);
+                })
+                .catch(error => console.error('Error fetching user information:', error));
+        }
+
+        function fetchDateList(brandName) {
+            // 使用 Fetch API 获取 Flask 接口返回的数据
+            fetch('/get_brand_dates/' + brandName)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch date list');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 获取到日期列表后，配置日期选择器并添加点击事件
+                    configureDatePicker(data, brandName); // 传递品牌名称给 configureDatePicker 函数
+                })
+                .catch(error => console.error('Error fetching date list:', error));
+        }
+
+        function configureDatePicker(dateList, brandName) {
+            // 解析获取到的日期列表
+            var selectableDates = dateList.dates.map(date => {
+                return new Date(date.slice(0, 4), parseInt(date.slice(4, 6)) - 1, date.slice(6));
+            });
+
+            // 找到离当前时间最近的可选日期
+            var nearestDate = selectableDates.reduce((nearest, date) => {
+                var currentDate = new Date();
+                if (!nearest || Math.abs(date - currentDate) < Math.abs(nearest - currentDate)) {
+                    return date;
+                } else {
+                    return nearest;
+                }
+            });
+
+            // 在页面加载时调用一次渲染函数
+            fetchDataAndRender(nearestDate, brandName); // 传递品牌名称给 fetchDataAndRender 函数
+
+            flatpickr("#date-picker", {
+                enableTime: false, // 禁用时间选择
+                dateFormat: "Ymd", // 设置日期格式
+                defaultDate: nearestDate, // 设置默认日期为离当前时间最近的日期
+                disable: [
+                    function(date) {
+                        // 禁用不在可选日期列表中的日期
+                        return !selectableDates.find(d => d.getTime() === date.getTime());
+                    }
+                ],
+                onChange: function(selectedDates) {
+                    // 当用户选择日期时触发
+                    if (selectedDates.length > 0) {
+                        var selectedDate = new Date(selectedDates[0]); // 获取日期对象
+                        selectedDate.setDate(selectedDate.getDate() + 1); // 将日期增加一天
+                        selectedDate = selectedDate.toISOString().slice(0, 10).replace(/-/g, "");
+                        fetchDataAndRenderCharts(brandName, selectedDate); // 传递品牌名称给 fetchDataAndRenderCharts 函数
+                        var dateformat = formatDate(selectedDate);
+                        dateContainer.innerHTML = '<p class="mb-2">' + dateformat + '</p>';
+                    }
+                }
+            });
+        }
+
+        function fetchDataAndRender(initDate, brandName) {
+            var date = new Date(initDate); // 创建一个新的日期对象
+            date.setDate(date.getDate() + 1); // 将日期增加一天
+            var formattedDate = date.toISOString().slice(0, 10).replace(/-/g, "");
+            fetchDataAndRenderCharts(brandName, formattedDate); // 传递品牌名称给 fetchDataAndRenderCharts 函数
+            var dateformat = formatDate(formattedDate);
+            dateContainer.innerHTML = '<p class="mb-2">' + dateformat + '</p>';
+        }
+
+        // 日期格式化函数（示例，您可以根据需要进行修改）
+        function formatDate(dateString) {
+            var year = dateString.substring(0, 4);
+            var month = dateString.substring(4, 6);
+            var day = dateString.substring(6, 8);
+            return year + "-" + month + "-" + day;
+        }
+
+        // 在页面加载完成后调用 fetchDateList 函数来获取日期列表
+        document.addEventListener("DOMContentLoaded", function() {
+            getUserInfoAndFetchDateList()
+        });
+
+        // 更新 Pie Charts 的函数，接收品牌名称和日期作为参数
+        function fetchDataAndRenderCharts(brandName, selectedDate) {
+            fetchDataAndRenderBarChart(brandName, 'threebarChart','positive_negative_neutral_barrage_by_time',selectedDate);
+            fetchDataAndRenderWordCloud(brandName, 'wordcloud', 'generate_barrage_wordcloud_data', selectedDate);
+        }
+    </script>
+</body>
+
+</html>
